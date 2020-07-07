@@ -1,0 +1,31 @@
+:root {
+	--block-min-width: 200px;
+}
+.blockelem {
+	/*padding-top: 15px;*/
+	background-color: lightcyan;
+	min-height: 100px;
+	border-radius: 5px;
+	box-shadow: 10px 10px 30px rgba(22, 33, 74, 0);
+	max-width: 250px;
+}
+.blockelem:hover {
+	box-shadow: 0px 4px 30px rgba(22, 33, 74, 0.08);
+	border-radius: 5px;
+	background-color: #fff;
+	cursor: pointer;
+}
+
+.blockdisabled {
+	background-color: #f0f2f9;
+	opacity: 0.5;
+}
+
+.c-block {
+	margin: 0;
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	min-width: var(--block-min-width) !important;
+	flex-direction: row-reverse;
+}
