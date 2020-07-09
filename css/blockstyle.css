@@ -1,5 +1,5 @@
 :root {
-	--block-min-width: 200px;
+	--block-min-width: 250px;
 }
 .blockelem {
 	/*padding-top: 15px;*/
@@ -23,9 +23,5 @@
 
 .c-block {
 	margin: 0;
-	display: flex;
-	justify-content: space-between;
-	width: 100%;
 	min-width: var(--block-min-width) !important;
-	flex-direction: row-reverse;
 }

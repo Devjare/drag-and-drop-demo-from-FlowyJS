@@ -8,7 +8,6 @@ var dataObject = {
 	type: "root",
 	name: "root",
 	root: true,
-	params: [],
 	children: []
 };
 var data = [
@@ -17,49 +16,39 @@ var data = [
 	name: "SERVICE 1",
 	desc: `This service is in charge of doing the math behind the 
 	calculus implied on the service #2 for image processing.`,
-	params: ["", "", -1, false] // CONSIDERING THAT THE PARAM ARRAY HAVE SOME DEFAULT VALUES TO LATER CHANGE
+	params: {
+		paramstr: '',
+		paramnbmr: 0,
+		parambool: !0
+	},
+	html: `<form class="container"><div class="form-group row m-2"><label for="txttype" 
+	class="col-sm-2 col-form-label col-form-label-sm">Text: </label><div class="col-sm-10">
+	<input id="paramstr" type="text" class="form-control form-control-sm" value="SoyUnInput">
+	</div></div><div class="form-group row m-2"><label for="ntype" class="col-sm-2 col-form-label 
+	col-form-label-sm">Number: </label><div class="col-sm-10"><input id="paramnbmr" type="number" 
+	class="form-control form-control-sm" value="SoyUnInput"></div></div><div class="form-check 
+	ml-4"><input class="form-check-input" type="checkbox" id="parambool"><label 
+	class="form-check-label" for="parambool">Remember me</label></div></form>`
 },
 {
 	id: "s-2",
 	name: "SERVICE 2",
 	desc: "this is sservice does some things",
-	params: [-1, true]
-},
-{
-	id: "s-4",
-	name: "SERVICE 4",
-	desc: "this is sservice does some things",
-	params: ["default", "", -1] 
-},
-{
-	id: "s-5",
-	name: "SERVICE 5",
-	desc: "this is sservice does some things",
-	params: ["default", "", -1, -1, -1] 
-},
-{
-	id: "s-6",
-	name: "SERVICE 6",
-	desc: "this is sservice does some things",
-	params: ["default", "", -1] 
-},
-{
-	id: "s-7",
-	name: "SERVICE 7",
-	desc: "this is sservice does some things",
-	params: [] 
-},
-{
-	id: "s-8",
-	name: "SERVICE 8",
-	desc: "this is sservice does some things",
-	params: ["default", "", -1] 
-}];
+	params: { paramnbmr: 0, paramlist: [] },
+	html: `<form class="container"><div class="form-group row m-2"><label for="ntype" 
+	class="col-sm-2 col-form-label col-form-label-sm">Number: </label><div class="col-sm-10">
+	<input id="paramnbmr" type="number" class="form-control form-control-sm" value="SoyUnInput">
+	</div></div><ul id="paramlist" class="list-group"><li id="app-name-0" class="list-group-item active">Cras justo odio</li>
+	<li id="app-name-1" class="list-group-item">Dapibus ac facilisis in</li><li id="app-name-2" class="list-group-item">Morbi 
+	leo risus</li></ul><button id="btn" class="btn btn-sm btn-primary m-2">Button submit</button>
+	</form><script type="text/javascript">document.getElementById('btn').onclick = (e) => {
+		alert('button clicked!');};</script>`
+	}];
 
-$(document).ready(function(e) {
+	$(document).ready(function(e) {
 
 	// data contains the static values for the 'services'
-	demoflowy_createBoxes(7, data);
+	demoflowy_createBoxes(2, data);
 	// init flowy
 	flowy(document.getElementById("canvas"), demoflowy_drag, demoflowy_release, 
 		demoflowy_snapping, demoflowy_rearranging, 60, 60);
@@ -121,8 +110,8 @@ $(document).ready(function(e) {
 		<div class="card-header py-1 px-3 text-center bg-primary text-white">${canvasId}
 		</div><div class="card-body py-2 px-4"><div class="card-text">`
 
-		for(let i = 0;i < params.length;i++) {
-			bcontent += `<strong>param[${i}]</strong>: <label class="text-danger">${params[i]}</label><br>`;
+		for(let param in params) {
+			bcontent += `<strong>${param}</strong>: <label class="text-danger">${params[param]}</label><br>`;
 		}
 
 		bcontent += `</div></div><div class="card-footer bg-dark text-white">
@@ -138,8 +127,9 @@ $(document).ready(function(e) {
 			type: id,
 			name: name,
 			root: false,
-			params: [...params],
-			children: []
+			params: params,
+			children: [],
+			html: data.find(s => s.id === id).html
 		});
 
 		drag.innerHTML += bcontent;
@@ -165,9 +155,9 @@ $(document).ready(function(e) {
 	}
 });
 
-function demoflowy_closeModal() {
-	$('#modal').modal('hide');
-}
+	function demoflowy_closeModal() {
+		$('#modal').modal('hide');
+	}
 
 // Remove child with id from dataObject
 function demoflowy_removeChild(id) {
@@ -225,29 +215,9 @@ function demoflowy_btnEditarClick(event) {
 
 function demoflowy_showModalFromId(canvasId) {
 	$("#modal").data("sourceId", canvasId);
-	let params = demoflowy_lookForParent(canvasId).params;
+	let parent = demoflowy_lookForParent(canvasId);
 
-	// Add params to modal body
-	for(let i = 0;i < params.length;i++) {
-		let type = typeof(params[i]);
-		let name = `param[${i}]`;
-		let defaultValue = params[i];
-
-		let input;
-
-		if (type === "string" || type === 'number') {
-			input = `<div class="form-group row"><label for="${name}" class="col-sm-2 col-form-label">
-			${name}</label><div class="col-sm-10 pr-4"><input id="${name}]" value="${defaultValue}" type="${type}"
-			class="form-control"></div></div>`;
-		} else if (type === "boolean") {
-			input = `<div class="form-group row"><label for="${name}" class="col-sm-2 col-form-label">
-			${name}</label><div class="col-sm-10 pr-4"><input id="${name}]" ${defaultValue ? "checked" : ""} 
-			type="checkbox" class="form-control"></div></div>`;
-		}
-
-		$('#modalBody').append(input);
-	}
-
+	$('#modalBody').append(parent.html);
 	// SHOW MODAL
 	$('#modal').modal('show');
 	$('#modalTitle').text(`${$('#modal').data('sourceId')}`);
@@ -277,18 +247,38 @@ function demoflowy_saveChanges(e) {
 	var inputs = $('input');
 	var fulltext = '';
 
-	for(let j = 0;j < parent.params.length;j++) {
-		let value = inputs[j].value;
-		let type = inputs[j].type;
+	for(let p in parent.params) {
+		let input = $(`#${p}`)[0];
+		console.log('input: ', $(`#${p}`));
+		let tagname = input.tagName;
 
-		if(type == 'checkbox') parent.params[j] = inputs[j].checked;
-		else if(value === "") parent.params[j] = "";
-		else if(!isNaN(value)) parent.params[j] = Number(value);
-		else parent.params[j] = value;
+		fulltext += `<strong>${p}:</strong>: `;
 
-		fulltext += `<strong>param[${j}]</strong>: <label class="text-danger">${parent.params[j]}</label><br>`;
+		if(tagname == 'UL') {
+			let children = Array.from(input.childNodes)
+			.filter(c => c.nodeType == Node.ELEMENT_NODE);
+			console.log('UL Children: ', children);
+			children.forEach(el => {
+				let id = el.id;
+				let text = el.innerHTML;
+				fulltext += `<ul class="list-group my-2"><li
+				id="${id}" class="list-group-item">${text}</li></ul>`;
+			});
+		} else {
+			let value = input.value;
+			let type = input.type;
+			console.log('value: ', value);
+			console.log('type: ', type);
+
+			if(type == 'checkbox') parent.params[p] = input.checked;
+			else if(value === "") parent.params[p] = "";
+			else if(!isNaN(value)) parent.params[p] = Number(value);
+			else parent.params[p] = value;
+
+			fulltext += `<label class="text-danger">${parent.params[p]}</label><br>`;
+		}
 	}
-	// remove old html and update new params to box on canvas
+
 	$(`#${id}`).find('div.card-text').html(fulltext);
 	demoflowy_closeModal();
 }
