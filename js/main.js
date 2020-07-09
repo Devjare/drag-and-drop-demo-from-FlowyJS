@@ -38,9 +38,9 @@ var data = [
 	html: `<form class="container"><div class="form-group row m-2"><label for="ntype" 
 	class="col-sm-2 col-form-label col-form-label-sm">Number: </label><div class="col-sm-10">
 	<input id="paramnbmr" type="number" class="form-control form-control-sm" value="SoyUnInput">
-	</div></div><div class="container"><h4>List 1</h4><ul id="paramlist" class="list-group"><li id="app-name-0" class="list-group-item">
-	li 2</li><li  id="app-name-0" class="list-group-item">li 1</li><li 
-	id="app-name-0" class="list-group-item">li 3</li></ul></div><div class="container"><h4>List 1</h4><ul 
+	</div></div><div class="container"><h4>List 1</h4><ul id="paramlist" class="list-group"><li id="app-name-0" 
+	class="list-group-item">li 2</li><li  id="app-name-1" class="list-group-item">li 1</li><li 
+	id="app-name-2" class="list-group-item">li 3</li></ul></div><div class="container"><h4>List 1</h4><ul 
 	id="list" class="list-group container"><li id="lix" class="list-group-item">li 4</li><li id="liy" class="list-group-item">li 5
 	</li><li id="liz" class="list-group-item">li 6</li></ul></div><script type="text/javascript">
 	$('#paramlist').sortable({group: 'mygroup1',animation: 350,});$('#list').sortable({group: 
@@ -138,7 +138,7 @@ $(document).ready(function(e) {
 			type: id,
 			name: name,
 			root: false,
-			params: params,
+			params: JSON.parse(JSON.stringify(params)),
 			children: [],
 			html: data.find(s => s.id === id).html
 		});
@@ -249,7 +249,7 @@ function demoflowy_showModalFromId(canvasId) {
 						console.log('el: ', el);
 						// name is just a randon var, it could be content or something else.
 						console.log('li: ', $(`#modalBody #${el.id}`));
-						$(`#modalBody #${el.id}`)[0].innerText = el.name;
+						$(`#modalBody #${el.id}`)[0].innerText = el.text;
 					});
 				}
 			}
@@ -293,14 +293,18 @@ function demoflowy_saveChanges(e) {
 		fulltext += `<strong>${p}:</strong>: `;
 
 		if(tagname == 'UL') {
+			// emtpy the array before adding the new list order
+			parent.params[p] = [];
 			let children = Array.from(input.childNodes)
 			.filter(c => c.nodeType == Node.ELEMENT_NODE);
-			console.log('UL Children: ', children);
+
 			fulltext += `<ul class="list-group my-2">`;
 			children.forEach(el => {
 				let id = el.id;
 				let text = el.innerHTML;
 				fulltext += `<li id="${id}" class="list-group-item">${text}</li>`;
+				
+				parent.params[p].push({id: id, text: text});
 			});
 			fulltext += `</ul>`;
 		} else {
