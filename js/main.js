@@ -34,21 +34,20 @@ var data = [
 	id: "s-2",
 	name: "SERVICE 2",
 	desc: "this is sservice does some things",
-	params: { paramnbmr: 0, paramlist: [
-		{id: 'app-name-0', name: 'NOMBRE 0'}, 
-		{id: 'app-name-1', name: 'NOMBRE 1'},
-		{id: 'app-name-2', name: 'NOMBRE 2'}] },
+	params: { paramnbmr: 0, paramlist: [] },
 	html: `<form class="container"><div class="form-group row m-2"><label for="ntype" 
 	class="col-sm-2 col-form-label col-form-label-sm">Number: </label><div class="col-sm-10">
 	<input id="paramnbmr" type="number" class="form-control form-control-sm" value="SoyUnInput">
-	</div></div><ul id="paramlist" class="list-group"><li id="app-name-0" class="list-group-item active">Cras justo odio</li>
-	<li id="app-name-1" class="list-group-item">Dapibus ac facilisis in</li><li id="app-name-2" class="list-group-item">Morbi 
-	leo risus</li></ul><button id="btn" class="btn btn-sm btn-primary m-2">Button submit</button>
-	</form><script type="text/javascript">document.getElementById('btn').onclick = (e) => {
-		alert('button clicked!');};</script>`
-	}];
+	</div></div><div class="container"><h4>List 1</h4><ul id="paramlist" class="list-group"><li id="app-name-0" class="list-group-item">
+	li 2</li><li  id="app-name-0" class="list-group-item">li 1</li><li 
+	id="app-name-0" class="list-group-item">li 3</li></ul></div><div class="container"><h4>List 1</h4><ul 
+	id="list" class="list-group container"><li id="lix" class="list-group-item">li 4</li><li id="liy" class="list-group-item">li 5
+	</li><li id="liz" class="list-group-item">li 6</li></ul></div><script type="text/javascript">
+	$('#paramlist').sortable({group: 'mygroup1',animation: 350,});$('#list').sortable({group: 
+	{name: 'mygroup1',pull: 'clone'},animation: 350,});</script>`
+}];
 
-	$(document).ready(function(e) {
+$(document).ready(function(e) {
 
 	// data contains the static values for the 'services'
 	demoflowy_createBoxes(2, data);
@@ -244,13 +243,15 @@ function demoflowy_showModalFromId(canvasId) {
 				// REVIEW: List elements, are gonna have values at first?
 				// or they will be empty at first, but then will be filled with
 				// the data from the modal?
-				console.log(`param: ${p}, is a list: `, $(`#modalBody #${p} li`));
-				parent.params[p].forEach(el => {
-					console.log('el: ', el);
-					// name is just a randon var, it could be content or something else.
-					console.log('li: ', $(`#modalBody #${el.id}`));
-					$(`#modalBody #${el.id}`)[0].innerText = el.name;
-				});
+				// console.log(`param: ${p}, is a list: `, $(`#modalBody #${p} li`));
+				if(parent.params[p].length > 0) {
+					parent.params[p].forEach(el => {
+						console.log('el: ', el);
+						// name is just a randon var, it could be content or something else.
+						console.log('li: ', $(`#modalBody #${el.id}`));
+						$(`#modalBody #${el.id}`)[0].innerText = el.name;
+					});
+				}
 			}
 		}
 	});
