@@ -241,6 +241,9 @@ function demoflowy_showModalFromId(canvasId) {
 				if(type == 'boolean') $(`#modalBody #${p}`)[0].checked = parent.params[p];
 				else $(`#modalBody #${p}`)[0].value = parent.params[p];
 			} else {
+				// REVIEW: List elements, are gonna have values at first?
+				// or they will be empty at first, but then will be filled with
+				// the data from the modal?
 				console.log(`param: ${p}, is a list: `, $(`#modalBody #${p} li`));
 				parent.params[p].forEach(el => {
 					console.log('el: ', el);
