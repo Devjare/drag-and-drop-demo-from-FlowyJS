@@ -34,7 +34,10 @@ var data = [
 	id: "s-2",
 	name: "SERVICE 2",
 	desc: "this is sservice does some things",
-	params: { paramnbmr: 0, paramlist: [] },
+	params: { paramnbmr: 0, paramlist: [
+		{id: 'app-name-0', name: 'NOMBRE 0'}, 
+		{id: 'app-name-1', name: 'NOMBRE 1'},
+		{id: 'app-name-2', name: 'NOMBRE 2'}] },
 	html: `<form class="container"><div class="form-group row m-2"><label for="ntype" 
 	class="col-sm-2 col-form-label col-form-label-sm">Number: </label><div class="col-sm-10">
 	<input id="paramnbmr" type="number" class="form-control form-control-sm" value="SoyUnInput">
@@ -110,8 +113,17 @@ var data = [
 		<div class="card-header py-1 px-3 text-center bg-primary text-white">${canvasId}
 		</div><div class="card-body py-2 px-4"><div class="card-text">`
 
-		for(let param in params) {
-			bcontent += `<strong>${param}</strong>: <label class="text-danger">${params[param]}</label><br>`;
+		for(let p in params) {
+			bcontent += `<strong>${p}</strong>:`
+			if(Array.isArray(params[p])) {
+				bcontent += `<ul id="${id}-ul" class="list-group my-2">`
+				params[p].forEach(p => {
+					bcontent += `<li id="${p.id}" class="list-group-item">${p.name}</li>`;
+				});
+				bcontent += `</ul>`;
+			} else {
+				bcontent += `<label class="text-danger">${params[p]}</label><br>`;
+			}
 		}
 
 		bcontent += `</div></div><div class="card-footer bg-dark text-white">
@@ -155,9 +167,9 @@ var data = [
 	}
 });
 
-	function demoflowy_closeModal() {
-		$('#modal').modal('hide');
-	}
+function demoflowy_closeModal() {
+	$('#modal').modal('hide');
+}
 
 // Remove child with id from dataObject
 function demoflowy_removeChild(id) {
@@ -218,6 +230,28 @@ function demoflowy_showModalFromId(canvasId) {
 	let parent = demoflowy_lookForParent(canvasId);
 
 	$('#modalBody').append(parent.html);
+	$('#modalBody').ready(function($) {
+		console.log('modal ready!');
+		let bodyInputs = $('#modalBody input:not(.blockid):not(.arrowid)');
+		let bodyLists = $('#modalBody li');
+
+		for(let p in parent.params) {
+			let type = typeof(parent.params[p]);
+			if(['string', 'number', 'boolean'].includes(type)) {
+				if(type == 'boolean') $(`#modalBody #${p}`)[0].checked = parent.params[p];
+				else $(`#modalBody #${p}`)[0].value = parent.params[p];
+			} else {
+				console.log(`param: ${p}, is a list: `, $(`#modalBody #${p} li`));
+				parent.params[p].forEach(el => {
+					console.log('el: ', el);
+					// name is just a randon var, it could be content or something else.
+					console.log('li: ', $(`#modalBody #${el.id}`));
+					$(`#modalBody #${el.id}`)[0].innerText = el.name;
+				});
+			}
+		}
+	});
+
 	// SHOW MODAL
 	$('#modal').modal('show');
 	$('#modalTitle').text(`${$('#modal').data('sourceId')}`);
@@ -258,12 +292,13 @@ function demoflowy_saveChanges(e) {
 			let children = Array.from(input.childNodes)
 			.filter(c => c.nodeType == Node.ELEMENT_NODE);
 			console.log('UL Children: ', children);
+			fulltext += `<ul class="list-group my-2">`;
 			children.forEach(el => {
 				let id = el.id;
 				let text = el.innerHTML;
-				fulltext += `<ul class="list-group my-2"><li
-				id="${id}" class="list-group-item">${text}</li></ul>`;
+				fulltext += `<li id="${id}" class="list-group-item">${text}</li>`;
 			});
+			fulltext += `</ul>`;
 		} else {
 			let value = input.value;
 			let type = input.type;
