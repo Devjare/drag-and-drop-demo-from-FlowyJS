@@ -10,6 +10,17 @@ var dataObject = {
 	root: true,
 	children: []
 };
+// TODO: TRY CHANGING THE DATAOBJECT TO AN ARRAY, SO IT COULD BE FASTER
+// TO REARRANGE DATA WHEN BOXES CHANGE PARENT.
+// var dataArray = {
+// 	{
+// 		id: "root",
+// 		boxid: 0,
+// 		type: "root",
+// 		name: "root",
+// 		parent: -1
+// 	}
+// };
 var data = [
 {
 	id: "s-1",
@@ -44,16 +55,16 @@ var data = [
 	id="list" class="list-group container"><li id="lix" class="list-group-item">li 4</li><li id="liy" class="list-group-item">li 5
 	</li><li id="liz" class="list-group-item">li 6</li></ul></div><script type="text/javascript">
 	$('#paramlist').sortable({group: 'mygroup1',animation: 350,});$('#list').sortable({group: 
-	{name: 'mygroup1',pull: 'clone'},animation: 350,});</script>`
-}];
+		{name: 'mygroup1',pull: 'clone'},animation: 350,});</script>`
+	}];
 
-$(document).ready(function(e) {
+	$(document).ready(function(e) {
 
 	// data contains the static values for the 'services'
 	demoflowy_createBoxes(2, data);
 	// init flowy
 	flowy(document.getElementById("canvas"), demoflowy_drag, demoflowy_release, 
-		demoflowy_snapping, demoflowy_rearranging, 60, 60);
+		demoflowy_snapping, demoflowy_rearranging, 100, 100, demoflowy_onBlockChange);
 
 	var popoverShow = false;
 	var canvasElementsCount = 1;
@@ -162,9 +173,135 @@ $(document).ready(function(e) {
 	function demoflowy_rearranging(block, parent) { 
 		console.log('rearranging, block: ', block, ' parent: ', parent);
 		demoflowy_removeChild(block.id);
+		canvasElementsCount--;
 		return false; 
 	}
+
+	var lastChanges = undefined;
+	var justReassigned = false;
+
+	function demoflowy_onBlockChange(type) {
+		console.log('type: ', type);
+		if(type == 'add') {
+			lastChanges = [...flowy.output().blockarr]
+			.map(c => { return { id: c.id, parent: c.parent }})
+			.sort((a, b) => a.id - b.id);
+		} else if(type == 'reasign') {
+			justReassigned = true;
+			console.log('reasing block');
+			// only a copy, jic
+			let changes = [...flowy.output().blockarr]
+			.map(c => { return { id: c.id, parent: c.parent }})
+			.sort((a, b) => a.id - b.id);
+
+			if(lastChanges == undefined) {
+			// check all dataObject			
+			lastChanges = changes;
+			console.log('there was some changes');
+			changes.forEach(c => {
+				console.log('c: ', c);
+				if(c.parent !== -1) {
+					let newparent = demoflowy_lookForParentWithBoxId(c.parent);
+					// make a copy of the child, cuz it is removed after this
+					let chlidFound = demoflowy_lookForParentWithBoxId(c.id);
+					let child = JSON.parse(JSON.stringify(chlidFound));
+
+					let deleted = demoflowy_removeChildWithBoxId(c.id);
+					if(deleted) console.log('child removed');
+					else console.log('nothing removed');
+
+					console.log('new parent: ', newparent, ' for child: ', child);
+					newparent.children.push(child);
+					console.log('new do: ', dataObject);
+				}
+			});
+
+		} else {			
+			// get only the elements that have changed.
+			var realchanges = demoflowy_getRealChanges(changes, lastChanges);
+			console.log('real changes: ', realchanges);
+			lastChanges = changes;
+
+			if(realchanges.length < 1) {
+				console.log('nothing changed!');
+			} else {
+				console.log('there was some changes');
+				realchanges.forEach(c => {
+					console.log('c: ', c);
+					let newparent = demoflowy_lookForParentWithBoxId(c.parent);
+					// make a copy of the child, cuz it is removed after this
+					let chlidFound = demoflowy_lookForParentWithBoxId(c.id);
+					let child = JSON.parse(JSON.stringify(chlidFound));
+
+					let deleted = demoflowy_removeChildWithBoxId(c.id);
+					if(deleted) {
+						console.log('child removed');
+					} else {
+						console.log('nothing removed');
+					}
+					console.log('new parent: ', newparent, ' for child: ', child);
+					newparent.children.push(child);
+					console.log('new do: ', dataObject);
+				});
+			}
+		}			
+	}
+}
 });
+
+function demoflowy_lookForParentWithBoxId(id) {
+	var children = arguments[1] ? arguments[1] : dataObject.children;
+	var parent = null;
+	if (id == dataObject.boxid) parent = dataObject;
+	else {
+		parent = children.find(child => child.boxid == id);
+		if(parent === undefined) {
+			children.forEach(child => {
+				if (child.children.length > 0) {
+					parent = demoflowy_lookForParentWithBoxId(id, child.children);
+					if (parent !== null && parent !== undefined) return;
+				}
+			});
+		}
+	}
+	// console.log('returning: ', parent);
+	return parent;
+}
+
+function demoflowy_removeChildWithBoxId(id) {
+	var children = arguments[1] ? arguments[1] : dataObject.children;
+	var deleted = false;
+
+	for(let i = 0;i < children.length;i++) {
+		if(children[i].boxid == id) {
+			children.splice(i, 1);
+			deleted = true;
+			break;
+		} else if(children[i].children.length > 0) {
+			deleted = demoflowy_removeChildWithBoxId(id, children[i].children);
+		}
+	}
+	return deleted;
+}
+
+function demoflowy_getRealChanges(arr1, arr2) {
+	var changes = [];
+	console.log('arr1: ', arr1);
+	console.log('arr2: ', arr2);
+
+	// if(arr1.length > arr2.length) arr2.push(arr1[arr1.length - 1]);
+	// else if(arr2.length > arr1.length) arr1.push(arr1[arr2.length - 1]);
+	for(let i = 0;i < arr1.length;i++) {
+		// are not the same if the parent changed
+		console.log(`arr1[${i}]: `, arr1[i]);
+		console.log(`arr2[${i}]: `, arr2[i]);
+		if(arr1[i].parent !== arr2[i].parent) {
+			// look for the changes and return those only
+			changes.push(arr1[i]);
+		}
+	}
+	return changes;
+}
 
 function demoflowy_closeModal() {
 	$('#modal').modal('hide');
@@ -234,25 +371,17 @@ function demoflowy_showModalFromId(canvasId) {
 		let bodyInputs = $('#modalBody input:not(.blockid):not(.arrowid)');
 		let bodyLists = $('#modalBody li');
 
+		// first, add the current html to let the list, if there's any, as
+		// it was the last time it was modified.
+		$(`#modalBody`).html(parent.html);
 		for(let p in parent.params) {
+			// then check the type of each param of the object, and assign its value to
+			// its correspondent input on the modal form.
 			let type = typeof(parent.params[p]);
 			if(['string', 'number', 'boolean'].includes(type)) {
 				if(type == 'boolean') $(`#modalBody #${p}`)[0].checked = parent.params[p];
 				else $(`#modalBody #${p}`)[0].value = parent.params[p];
-			} else {
-				// REVIEW: List elements, are gonna have values at first?
-				// or they will be empty at first, but then will be filled with
-				// the data from the modal?
-				// console.log(`param: ${p}, is a list: `, $(`#modalBody #${p} li`));
-				if(parent.params[p].length > 0) {
-					parent.params[p].forEach(el => {
-						console.log('el: ', el);
-						// name is just a randon var, it could be content or something else.
-						console.log('li: ', $(`#modalBody #${el.id}`));
-						$(`#modalBody #${el.id}`)[0].innerText = el.text;
-					});
-				}
-			}
+			} 
 		}
 	});
 
@@ -297,7 +426,7 @@ function demoflowy_saveChanges(e) {
 			parent.params[p] = [];
 			let children = Array.from(input.childNodes)
 			.filter(c => c.nodeType == Node.ELEMENT_NODE);
-
+			
 			fulltext += `<ul class="list-group my-2">`;
 			children.forEach(el => {
 				let id = el.id;
@@ -323,5 +452,8 @@ function demoflowy_saveChanges(e) {
 	}
 
 	$(`#${id}`).find('div.card-text').html(fulltext);
+	// since the html is going to be changed, then it shoulud be changed on the 
+	// html of the data as well
+	parent.html = $('#modalBody').html();
 	demoflowy_closeModal();
 }

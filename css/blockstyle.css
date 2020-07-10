@@ -24,4 +24,9 @@
 .c-block {
 	margin: 0;
 	min-width: var(--block-min-width) !important;
+	max-height: 225px;
+}
+
+.card-body {
+	overflow: auto;
 }
