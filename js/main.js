@@ -187,36 +187,15 @@ var data = [
 			.map(c => { return { id: c.id, parent: c.parent }})
 			.sort((a, b) => a.id - b.id);
 		} else if(type == 'reasign') {
-			justReassigned = true;
+			// justReassigned = true;
 			console.log('reasing block');
 			// only a copy, jic
 			let changes = [...flowy.output().blockarr]
 			.map(c => { return { id: c.id, parent: c.parent }})
 			.sort((a, b) => a.id - b.id);
 
-			if(lastChanges == undefined) {
-			// check all dataObject			
-			lastChanges = changes;
-			console.log('there was some changes');
-			changes.forEach(c => {
-				console.log('c: ', c)
-				if(c.parent !== -1) {
-					let newparent = demoflowy_lookForParentWithBoxId(c.parent);
-					// make a copy of the child, cuz it is removed after this
-					let chlidFound = demoflowy_lookForParentWithBoxId(c.id);
-					let child = JSON.parse(JSON.stringify(chlidFound));
+			console.log('last changes: ', lastChanges);
 
-					let deleted = demoflowy_removeChildWithBoxId(c.id);
-					if(deleted) console.log('child removed');
-					else console.log('nothing removed');
-
-					console.log('new parent: ', newparent, ' for child: ', child);
-					newparent.children.push(child);
-					console.log('new do: ', dataObject);
-				}
-			});
-
-		} else {			
 			// get only the elements that have changed.
 			var realchanges = demoflowy_getRealChanges(changes, lastChanges);
 			console.log('real changes: ', realchanges);
@@ -230,6 +209,7 @@ var data = [
 					console.log('c: ', c);
 					let newparent = demoflowy_lookForParentWithBoxId(c.parent);
 					// make a copy of the child, cuz it is removed after this
+					console.log('looking for: ', c.id);
 					let chlidFound = demoflowy_lookForParentWithBoxId(c.id);
 					let child = JSON.parse(JSON.stringify(chlidFound));
 
@@ -244,9 +224,8 @@ var data = [
 					console.log('new do: ', dataObject);
 				});
 			}
-		}			
+		}
 	}
-}
 });
 
 function demoflowy_lookForParentWithBoxId(id) {
@@ -256,15 +235,14 @@ function demoflowy_lookForParentWithBoxId(id) {
 	else {
 		parent = children.find(child => child.boxid == id);
 		if(parent === undefined) {
-			children.forEach(child => {
-				if (child.children.length > 0) {
-					parent = demoflowy_lookForParentWithBoxId(id, child.children);
-					if (parent !== null && parent !== undefined) return;
+			for(let i = 0; i < children.length;i++) {
+				if(children[i].children.length > 0) {
+					parent = demoflowy_lookForParentWithBoxId(id, children[i].children);
+					if (parent !== null && parent !== undefined) return parent;
 				}
-			});
+			}
 		}
 	}
-	// console.log('returning: ', parent);
 	return parent;
 }
 
@@ -397,12 +375,12 @@ function demoflowy_lookForParent(parentId) {
 	else {
 		parent = children.find(child => child.id == parentId);
 		if(parent === undefined) {
-			children.forEach(child => {
-				if (child.children.length > 0) {
-					parent = demoflowy_lookForParent(parentId, child.children);
-					if (parent !== null && parent !== undefined) return;
+			for(let i = 0; i < children.length;i++) {
+				if(children[i].children.length > 0) {
+					parent = demoflowy_lookForParent(parentId, children[i].children);
+					if (parent !== null && parent !== undefined) return parent;
 				}
-			});
+			}
 		}
 	}
 	return parent;
