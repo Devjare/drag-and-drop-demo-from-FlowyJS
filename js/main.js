@@ -199,7 +199,7 @@ var data = [
 			lastChanges = changes;
 			console.log('there was some changes');
 			changes.forEach(c => {
-				console.log('c: ', c);
+				console.log('c: ', c)
 				if(c.parent !== -1) {
 					let newparent = demoflowy_lookForParentWithBoxId(c.parent);
 					// make a copy of the child, cuz it is removed after this
